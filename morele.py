@@ -1,5 +1,7 @@
 import os
 import time
+import sqlite3
+from datetime import datetime
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
@@ -39,13 +41,15 @@ class Morele(webdriver.Chrome):
         def getting_details():
             product_list_parent = self.find_element(By.CSS_SELECTOR, 'div[data-controller="product-list"]')
             product_list = product_list_parent.find_elements(By.CSS_SELECTOR, 'div[data-product-position]')
+            cards = {}
             for item in product_list:
                 name = item.get_attribute("data-product-name")
                 name = name.lstrip("Karta graficzna ")
                 name = name.split('(')[0]
                 price = item.get_attribute("data-product-price")
                 price = price.split('.')[0] + " zł"
-                print(name + ' ----- ' + price)
+                cards[name] = price
+            return cards
 
         field = self.find_element(By.LINK_TEXT, 'Karty graficzne')
         field.click()
@@ -54,8 +58,8 @@ class Morele(webdriver.Chrome):
         down_arrow = self.find_element(By.CSS_SELECTOR, 'span[data-fcollection-toggle=".f-collection-item-8143-2835"]')
         down_arrow.click()
         
-        RTX_3060 = self.find_element(By.XPATH, '//*[@id="form_12"]/div[1]/div/div[2]/div[6]/div[2]/div[1]/div[1]/div[2]/div[2]/label')
-        RTX_3060.click()
+        RTX_3060 = self.find_element(By.XPATH, '//*[@id="form_12"]/div[1]/div/div[2]/div[6]/div[2]/div[1]/div[1]/div[2]/div[1]/label')
+        RTX_3060.click()                        
 
         time.sleep(3)
         sorting_dropdown_menu = self.find_element(By.XPATH, '//*[@id="category"]/div[2]/div[1]/div[6]/div[1]/div[3]/div/div[1]/button')
@@ -65,10 +69,11 @@ class Morele(webdriver.Chrome):
         ascending_price.click()
 
         try:
-            getting_details()
+            cards = getting_details()
         except:
-            getting_details()
+            cards = getting_details()
         
+        return cards
 
     def CPU(self):
         field = self.find_element(By.LINK_TEXT, 'Procesory')
@@ -97,11 +102,31 @@ class Morele(webdriver.Chrome):
 
     def choose_category(self, item='GPU'):
         if item == 'GPU':
-            self.GPU()
+            return self.GPU()
         if item == 'CPU':
             self.CPU()
         if item == 'SSD':
-            self.SSD() 
+            self.SSD()
+
+    def injecting_into_database(driver, dictio):
+        dt = datetime.now().strftime("%d %B %Y")
+        table_name = f'{dt} - RTX 3060'
+
+        con = sqlite3.connect('database.db')
+        c = con.cursor()
+
+        create_table_query = f'CREATE TABLE "{table_name}" (Graphics_Card, Price)'
+        c.execute(create_table_query)
+
+        inserting_query = f'INSERT INTO "{table_name}" VALUES (?,?)'
+        
+        for i in dictio:
+            pair = (i, dictio[i])
+            c.execute(inserting_query, pair)
+
+        con.commit()
+        con.close()
+
 
 
 if __name__=='__main__':
@@ -109,9 +134,11 @@ if __name__=='__main__':
         while True:
             try:
                 bot.filtering()
-                bot.choose_category(item='GPU')
+                #print(bot.choose_category(item='GPU'))
+                dictio = bot.choose_category(item='GPU')
             except Exception as e:
                 print(e)
                 continue
+            bot.injecting_into_database(dictio)
             time.sleep(10000)
             break
