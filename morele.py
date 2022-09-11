@@ -52,7 +52,7 @@ class Morele(webdriver.Chrome):
         action.move_to_element(hover_field).perform()
 
 
-    def GPU(self):
+    def GPU(self, model):
         def getting_details():
             product_list_parent = self.find_element(By.CSS_SELECTOR, 'div[data-controller="product-list"]')
             product_list = product_list_parent.find_elements(By.CSS_SELECTOR, 'div[data-product-position]')
@@ -73,8 +73,8 @@ class Morele(webdriver.Chrome):
         down_arrow = self.find_element(By.CSS_SELECTOR, 'span[data-fcollection-toggle=".f-collection-item-8143-2835"]')
         down_arrow.click()
         
-        RTX_3060 = self.find_element(By.CSS_SELECTOR, 'div[data-name="GeForce RTX 3060"')
-        RTX_3060.click()                        
+        GPU_selection = self.find_element(By.CSS_SELECTOR, f'div[data-name="GeForce RTX {model}"')
+        GPU_selection.click()                        
 
         time.sleep(3)
         sorting_dropdown_menu = self.find_element(By.XPATH, "//button[contains(., 'Sortowanie')]")
@@ -102,19 +102,19 @@ class Morele(webdriver.Chrome):
         field.click()
       
 
-    def choose_category(self, item='GPU'):
+    def choose_category(self, item, model):
         self.filtering()
         if item == 'GPU':
-            return self.GPU()
+            return self.GPU(model)
         if item == 'CPU':
             self.CPU()
         if item == 'SSD':
             self.SSD()
 
 
-    def injecting_into_database(driver, dictio):
+    def injecting_into_database(driver, dictio, model):
         dt = datetime.now().strftime("%d %B %Y")
-        table_name = f'{dt} - RTX 3060'
+        table_name = f'{dt} - RTX {model}'
 
         con = sqlite3.connect('database.db')
         c = con.cursor()
@@ -132,14 +132,16 @@ class Morele(webdriver.Chrome):
         con.close()
 
 
+GPUs = ['3050', '3060', '3070']
+
 if __name__=='__main__':
     with Morele() as bot:
-        while True:
-            try:
-                dictio = bot.choose_category(item='GPU')
-            except Exception as e:
-                print(e)
-                continue
-            bot.injecting_into_database(dictio)
-            time.sleep(10000)
-            break
+        for GPU in GPUs:
+            while True:
+                try:
+                    dictio = bot.choose_category(item='GPU', model=GPU)
+                except Exception as e:
+                    print(e)
+                    continue
+                bot.injecting_into_database(dictio, model=GPU)
+                break
