@@ -1,4 +1,5 @@
 import os
+from sys import prefix
 import time
 import sqlite3
 from datetime import datetime
@@ -70,14 +71,20 @@ class Morele(webdriver.Chrome):
         field.click()
 
         time.sleep(3)
-        down_arrow = self.find_element(By.CSS_SELECTOR, 'span[data-fcollection-toggle=".f-collection-item-8143-2835"]')
+
+        if model.startswith('30'):
+            down_arrow = self.find_element(By.CSS_SELECTOR, 'span[data-fcollection-toggle=".f-collection-item-8143-2835"]')
+            prefix = 'GeForce RTX'
+        else:
+            down_arrow = self.find_element(By.CSS_SELECTOR, 'span[data-fcollection-toggle=".f-collection-item-8143-2837"]')
+            prefix = 'Radeon RX'
         down_arrow.click()
 
         try:        
-            GPU_selection = self.find_element(By.CSS_SELECTOR, f'div[data-name="GeForce RTX {model}"')
+            GPU_selection = self.find_element(By.CSS_SELECTOR, f'div[data-name="{prefix} {model}"')
         except Exception as e:
             if e.__class__.__name__ == 'NoSuchElementException':
-                print(f'Cannot find GeForce RTX {model}')
+                print(f'Cannot find {prefix} {model}')
                 cards = {"none":"none"}
                 return cards
             else:
@@ -123,7 +130,11 @@ class Morele(webdriver.Chrome):
 
     def injecting_into_database(driver, dictio, model):
         dt = datetime.now().strftime("%d %B %Y")
-        table_name = f'{dt} - RTX {model}'
+        if model.startswith('30'):
+            prefix = 'GeForce RTX'
+        else:
+            prefix = 'Radeon RX'
+        table_name = f'{dt} - {prefix} {model}'
 
         con = sqlite3.connect('database.db')
         c = con.cursor()
@@ -141,7 +152,8 @@ class Morele(webdriver.Chrome):
         con.close()
 
 
-GPUs = ['3040', '3045', '3050', '3060', '3060 Ti', '3070', '3070 Ti', '3080', '3080 Ti', '3090', '3090 Ti']
+GPUs = ['3050', '3060', '3060 Ti', '3070', '3070 Ti', '3080', '3080 Ti', '3090', '3090 Ti', '6400', '6500 XT', '6600',
+        '6600 XT', '6650 XT', '6700', '6700 XT', '6800', '6800 XT', '6900', '6900 XT', '6950 XT']
 
 if __name__=='__main__':
     with Morele() as bot:
