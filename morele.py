@@ -72,8 +72,17 @@ class Morele(webdriver.Chrome):
         time.sleep(3)
         down_arrow = self.find_element(By.CSS_SELECTOR, 'span[data-fcollection-toggle=".f-collection-item-8143-2835"]')
         down_arrow.click()
-        
-        GPU_selection = self.find_element(By.CSS_SELECTOR, f'div[data-name="GeForce RTX {model}"')
+
+        try:        
+            GPU_selection = self.find_element(By.CSS_SELECTOR, f'div[data-name="GeForce RTX {model}"')
+        except Exception as e:
+            if e.__class__.__name__ == 'NoSuchElementException':
+                print(f'Cannot find GeForce RTX {model}')
+                cards = {"none":"none"}
+                return cards
+            else:
+                print(Exception)
+                exit()
         GPU_selection.click()                        
 
         time.sleep(3)
@@ -132,7 +141,7 @@ class Morele(webdriver.Chrome):
         con.close()
 
 
-GPUs = ['3050', '3060', '3060 Ti', '3070', '3070 Ti', '3080', '3080 Ti', '3090', '3090 Ti']
+GPUs = ['3040', '3045', '3050', '3060', '3060 Ti', '3070', '3070 Ti', '3080', '3080 Ti', '3090', '3090 Ti']
 
 if __name__=='__main__':
     with Morele() as bot:
