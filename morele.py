@@ -132,7 +132,7 @@ class Morele(webdriver.Chrome):
         con.close()
 
 
-GPUs = ['3050', '3060', '3070']
+GPUs = ['3050', '3060', '3060 Ti', '3070', '3070 Ti', '3080', '3080 Ti', '3090', '3090 Ti']
 
 if __name__=='__main__':
     with Morele() as bot:
