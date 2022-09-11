@@ -58,12 +58,13 @@ class Morele(webdriver.Chrome):
         down_arrow = self.find_element(By.CSS_SELECTOR, 'span[data-fcollection-toggle=".f-collection-item-8143-2835"]')
         down_arrow.click()
         
-        RTX_3060 = self.find_element(By.XPATH, '//*[@id="form_12"]/div[1]/div/div[2]/div[6]/div[2]/div[1]/div[1]/div[2]/div[1]/label')
+        RTX_3060 = self.find_element(By.CSS_SELECTOR, 'div[data-name="GeForce RTX 3060"')
         RTX_3060.click()                        
 
         time.sleep(3)
-        sorting_dropdown_menu = self.find_element(By.XPATH, '//*[@id="category"]/div[2]/div[1]/div[6]/div[1]/div[3]/div/div[1]/button')
-        sorting_dropdown_menu.click()
+        sorting_dropdown_menu = self.find_element(By.XPATH, "//button[contains(., 'Sortowanie')]")
+        action = ActionChains(self)
+        action.move_to_element(sorting_dropdown_menu).click().perform()
 
         ascending_price = self.find_element(By.CSS_SELECTOR, 'li[data-dropdown-value="price|asc"]')
         ascending_price.click()
@@ -101,6 +102,7 @@ class Morele(webdriver.Chrome):
 
 
     def choose_category(self, item='GPU'):
+        self.filtering()
         if item == 'GPU':
             return self.GPU()
         if item == 'CPU':
@@ -133,8 +135,6 @@ if __name__=='__main__':
     with Morele() as bot:
         while True:
             try:
-                bot.filtering()
-                #print(bot.choose_category(item='GPU'))
                 dictio = bot.choose_category(item='GPU')
             except Exception as e:
                 print(e)
