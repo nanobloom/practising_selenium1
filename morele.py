@@ -37,6 +37,21 @@ class Morele(webdriver.Chrome):
             button.click()
 
 
+    def filtering(self):
+        self.get('https://www.morele.net/')
+
+        try:
+            WebDriverWait(self, 15).until(expected_conditions.element_to_be_clickable((
+                By.CSS_SELECTOR, 'button[class="btn btn-secondary btn-secondary-outline btn-md close-cookie-box"]')))
+            self.find_element(By.CSS_SELECTOR, 'button[class="btn btn-secondary btn-secondary-outline btn-md close-cookie-box"]').click()
+        except:
+            pass           
+
+        hover_field = self.find_element(By.LINK_TEXT, 'Podzespoły komputerowe')
+        action = ActionChains(self)
+        action.move_to_element(hover_field).perform()
+
+
     def GPU(self):
         def getting_details():
             product_list_parent = self.find_element(By.CSS_SELECTOR, 'div[data-controller="product-list"]')
@@ -76,6 +91,7 @@ class Morele(webdriver.Chrome):
         
         return cards
 
+
     def CPU(self):
         field = self.find_element(By.LINK_TEXT, 'Procesory')
         field.click()
@@ -84,22 +100,7 @@ class Morele(webdriver.Chrome):
     def SSD(self):
         field = self.find_element(By.LINK_TEXT, 'Dyski SSD')
         field.click()
-
-        
-    def filtering(self):
-        self.get('https://www.morele.net/')
-
-        try:
-            WebDriverWait(self, 15).until(expected_conditions.element_to_be_clickable((
-                By.CSS_SELECTOR, 'button[class="btn btn-secondary btn-secondary-outline btn-md close-cookie-box"]')))
-            self.find_element(By.CSS_SELECTOR, 'button[class="btn btn-secondary btn-secondary-outline btn-md close-cookie-box"]').click()
-        except:
-            pass           
-
-        hover_field = self.find_element(By.LINK_TEXT, 'Podzespoły komputerowe')
-        action = ActionChains(self)
-        action.move_to_element(hover_field).perform()
-
+      
 
     def choose_category(self, item='GPU'):
         self.filtering()
@@ -109,6 +110,7 @@ class Morele(webdriver.Chrome):
             self.CPU()
         if item == 'SSD':
             self.SSD()
+
 
     def injecting_into_database(driver, dictio):
         dt = datetime.now().strftime("%d %B %Y")
@@ -128,7 +130,6 @@ class Morele(webdriver.Chrome):
 
         con.commit()
         con.close()
-
 
 
 if __name__=='__main__':
