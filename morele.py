@@ -1,5 +1,4 @@
 import os
-from sys import prefix
 import time
 import sqlite3
 from datetime import datetime
@@ -11,7 +10,7 @@ from selenium.webdriver.support import expected_conditions
 #from selenium.common.exceptions import StaleElementReferenceException
 #from selenium.common.exceptions import NoSuchElementException
 
-class Morele(webdriver.Chrome):
+class Scraper(webdriver.Chrome):
     def __init__(self, time=10, path=r"/opt/chromedriver"):
         self.time = time
         self.path = path
@@ -22,7 +21,7 @@ class Morele(webdriver.Chrome):
         self.implicitly_wait(self.time)
 
 
-    def login(self):
+    def login_Morele(self):
         self.get('https://www.morele.net/login')
 
         if self.find_element(By.LINK_TEXT, 'Nie pamiętam hasła'):
@@ -38,7 +37,7 @@ class Morele(webdriver.Chrome):
             button.click()
 
 
-    def filtering(self):
+    def filtering_Morele(self):
         self.get('https://www.morele.net/')
 
         try:
@@ -53,8 +52,8 @@ class Morele(webdriver.Chrome):
         action.move_to_element(hover_field).perform()
 
 
-    def GPU(self, model):
-        def getting_details():
+    def GPU_Morele(self, model):
+        def getting_details_Morele():
             product_list_parent = self.find_element(By.CSS_SELECTOR, 'div[data-controller="product-list"]')
             product_list = product_list_parent.find_elements(By.CSS_SELECTOR, 'div[data-product-position]')
             cards = {}
@@ -101,34 +100,34 @@ class Morele(webdriver.Chrome):
         ascending_price.click()
 
         try:
-            cards = getting_details()
+            cards = getting_details_Morele()
         except:
-            cards = getting_details()
+            cards = getting_details_Morele()
         
         return cards
 
 
-    def CPU(self):
+    def CPU_Morele(self):
         field = self.find_element(By.LINK_TEXT, 'Procesory')
         field.click()
 
 
-    def SSD(self):
+    def SSD_Morele(self):
         field = self.find_element(By.LINK_TEXT, 'Dyski SSD')
         field.click()
       
 
-    def choose_category(self, item, model):
-        self.filtering()
+    def choose_category_Morele(self, item, model):
+        self.filtering_Morele()
         if item == 'GPU':
-            return self.GPU(model)
+            return self.GPU_Morele(model)
         if item == 'CPU':
-            self.CPU()
+            self.CPU_Morele()
         if item == 'SSD':
-            self.SSD()
+            self.SSD_Morele()
 
 
-    def injecting_into_database(driver, dictio, model):
+    def injecting_into_database_Morele(driver, dictio, model):
         dt = datetime.now().strftime("%d %B %Y")
         if model.startswith('30'):
             prefix = 'GeForce RTX'
@@ -152,17 +151,52 @@ class Morele(webdriver.Chrome):
         con.close()
 
 
+    def filtering_xkom(self):
+        self.get('https://www.x-kom.pl/')
+
+        try:
+            WebDriverWait(self, 15).until(expected_conditions.element_to_be_clickable((
+                By.CSS_SELECTOR, 'h3[class="sc-an0bcv-3 drEWFj"]')))
+            self.find_element(By.CSS_SELECTOR, 'button[class="sc-15ih3hi-0 sc-1p1bjrl-8 iOlyHf"]').click()
+            toggles = self.find_elements(By.CSS_SELECTOR, 'div[class="sc-1s6540e-2 PJFwA"]')
+            for toggle in toggles:
+                if toggle.get_attribute('style') == "transform: translateX(16px);":
+                    toggle.click()
+            save = self.find_element(By.CSS_SELECTOR, 'button[class="sc-15ih3hi-0 sc-1p1bjrl-8 iOlyHf"]')
+            save.click()
+        except:
+            pass
+
+        action = ActionChains(self)
+        hover_fields = self.find_elements(By.CSS_SELECTOR, 'div[class="sc-13hctwf-5 bdvNWx"]')
+        for hover_field in hover_fields:
+            if hover_field.get_attribute('innerHTML') == 'Podzespoły komputerowe':
+                action.move_to_element(hover_field).perform()
+
+        item_list = self.find_elements(By.CSS_SELECTOR, 'p[class="sc-fzqPZZ ehVgFZ sc-a8nzxk-4 cYFNXB"]')
+        for item in item_list:
+            if item.get_attribute('innerHTML') == 'Karty graficzne':
+                item.click()
+        
+        # span = self.find_elements(By.CSS_SELECTOR, 'span[class="sc-1tblmgq-0 sc-1tblmgq-4 fmHGFd sc-cs8ibv-3 bHCpRh"]')
+        
+
+
+
 GPUs = ['3050', '3060', '3060 Ti', '3070', '3070 Ti', '3080', '3080 Ti', '3090', '3090 Ti', '6400', '6500 XT', '6600',
         '6600 XT', '6650 XT', '6700', '6700 XT', '6800', '6800 XT', '6900', '6900 XT', '6950 XT']
 
 if __name__=='__main__':
-    with Morele() as bot:
-        for GPU in GPUs:
+    with Scraper() as bot:
+        '''for GPU in GPUs:
             while True:
                 try:
-                    dictio = bot.choose_category(item='GPU', model=GPU)
+                    dictio = bot.choose_category_Morele(item='GPU', model=GPU)
                 except Exception as e:
                     print(e)
                     continue
-                bot.injecting_into_database(dictio, model=GPU)
-                break
+                bot.injecting_into_database_Morele(dictio, model=GPU)
+                break'''
+        bot.filtering_xkom()
+        
+
