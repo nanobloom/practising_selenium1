@@ -8,7 +8,7 @@ from selenium.webdriver.common.action_chains import ActionChains
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions
 #from selenium.common.exceptions import StaleElementReferenceException
-#from selenium.common.exceptions import NoSuchElementException
+from selenium.common.exceptions import NoSuchElementException
 
 class Scraper(webdriver.Chrome):
     def __init__(self, time=10, path=r"/opt/chromedriver"):
@@ -82,6 +82,7 @@ class Scraper(webdriver.Chrome):
         try:        
             GPU_selection = self.find_element(By.CSS_SELECTOR, f'div[data-name="{prefix} {model}"')
         except Exception as e:
+            # tried handling that Exception without importing the exception object and it works
             if e.__class__.__name__ == 'NoSuchElementException':
                 print(f'Cannot find {prefix} {model}')
                 cards = {"none":"none"}
@@ -151,7 +152,7 @@ class Scraper(webdriver.Chrome):
         con.close()
 
 
-    def filtering_xkom(self):
+    def filtering_xkom(self, model):
         self.get('https://www.x-kom.pl/')
 
         def getting_details_xkom():
@@ -166,7 +167,8 @@ class Scraper(webdriver.Chrome):
                 price = price.get_attribute('innerHTML')
                 price = price.split(',')[0].replace(" ", "") + price.split(',')[1].lstrip('00')
                 cards[name] = price
-            return cards
+            print(cards)
+            #return cards
 
         try:
             WebDriverWait(self, 15).until(expected_conditions.element_to_be_clickable((
@@ -191,13 +193,28 @@ class Scraper(webdriver.Chrome):
         for item in item_list:
             if item.get_attribute('innerHTML') == 'Karty graficzne':
                 item.click()
-        
-        svg = self.find_element(By.XPATH, "//span[text()[contains(., 'NVIDIA GeForce')]]/../../button[@class='sc-15ih3hi-0 sc-cs8ibv-1 krqPaL']/span[@class='sc-1tblmgq-0 sc-1tblmgq-4 fmHGFd sc-cs8ibv-3 bHCpRh']/*[local-name() = 'svg']")
-        svg.click()
 
-        choose_model = self.find_element(By.XPATH, "//span[text()[contains(., 'GeForce RTX 3090 Ti')]]")
-        choose_model.click()
+        if model.startswith('30'):
         
+            svg = self.find_element(By.XPATH, "//span[text()[contains(., 'NVIDIA GeForce')]]/../../button[@class='sc-15ih3hi-0 sc-cs8ibv-1 krqPaL']/span[@class='sc-1tblmgq-0 sc-1tblmgq-4 fmHGFd sc-cs8ibv-3 bHCpRh']/*[local-name() = 'svg']")
+            svg.click()
+            
+            try:
+                choose_model = self.find_element(By.XPATH, f"//span[text()[contains(., 'GeForce RTX {model}')]]")
+            except Exception as e:
+                if e == NoSuchElementException:
+                    print(f'Cannot find GeForce RTX {model}')
+                    cards = {"none":"none"}
+                    return cards
+                else:
+                    print(Exception)
+                    exit()
+
+            choose_model.click()
+
+        # todo - add AMD Graphics Cards
+        # todo - figure out how to choose proper dropdown menu
+        # todo - ensure that when choosing 3060, 3060 Ti is not selected instead       
         sorting_dropdown_menu = self.find_element(By.ID, "react-select-id2--value-item")
         self.execute_script("window.scrollTo(0,0);")
         sorting_dropdown_menu.click()
@@ -224,6 +241,7 @@ if __name__=='__main__':
                     continue
                 bot.injecting_into_database_Morele(dictio, model=GPU)
                 break'''
-        bot.filtering_xkom()
+        for GPU in GPUs:
+            bot.filtering_xkom(model=GPU)
         
 
