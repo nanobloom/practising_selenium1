@@ -154,6 +154,20 @@ class Scraper(webdriver.Chrome):
     def filtering_xkom(self):
         self.get('https://www.x-kom.pl/')
 
+        def getting_details_xkom():
+            product_list_parent = self.find_element(By.CSS_SELECTOR, 'div[id="listing-container"]')
+            product_list = product_list_parent.find_elements(By.CSS_SELECTOR, 'div[class="sc-1s1zksu-0 dzLiED sc-162ysh3-1 irFnoT"]')
+            cards = {}
+            for item in product_list:
+                name = item.find_element(By.CSS_SELECTOR, 'h3[class="sc-16zrtke-0 kGLNun sc-1yu46qn-9 feSnpB"]')
+                name = name.get_attribute('title')
+                name = name.lstrip('Karta graficzna ')
+                price = item.find_element(By.CSS_SELECTOR, 'span[data-name="productPrice"]')
+                price = price.get_attribute('innerHTML')
+                price = price.split(',')[0].replace(" ", "") + price.split(',')[1].lstrip('00')
+                cards[name] = price
+            return cards
+
         try:
             WebDriverWait(self, 15).until(expected_conditions.element_to_be_clickable((
                 By.CSS_SELECTOR, 'h3[class="sc-an0bcv-3 drEWFj"]')))
@@ -178,8 +192,21 @@ class Scraper(webdriver.Chrome):
             if item.get_attribute('innerHTML') == 'Karty graficzne':
                 item.click()
         
-        # span = self.find_elements(By.CSS_SELECTOR, 'span[class="sc-1tblmgq-0 sc-1tblmgq-4 fmHGFd sc-cs8ibv-3 bHCpRh"]')
+        svg = self.find_element(By.XPATH, "//span[text()[contains(., 'NVIDIA GeForce')]]/../../button[@class='sc-15ih3hi-0 sc-cs8ibv-1 krqPaL']/span[@class='sc-1tblmgq-0 sc-1tblmgq-4 fmHGFd sc-cs8ibv-3 bHCpRh']/*[local-name() = 'svg']")
+        svg.click()
+
+        choose_model = self.find_element(By.XPATH, "//span[text()[contains(., 'GeForce RTX 3090 Ti')]]")
+        choose_model.click()
         
+        sorting_dropdown_menu = self.find_element(By.ID, "react-select-id2--value-item")
+        self.execute_script("window.scrollTo(0,0);")
+        sorting_dropdown_menu.click()
+
+        ascending_price = self.find_element(By.CSS_SELECTOR, 'div[aria-label="Cena: od najtańszych"]')
+        ascending_price.click()
+
+        getting_details_xkom()
+
 
 
 
